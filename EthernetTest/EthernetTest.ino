@@ -5,7 +5,6 @@
 
 EthernetClient client;
 
-typedef void (*FunctionPointer)();
 class Command;
 const byte HASH_SIZE = 100;
 HashType<String*, Command*>FunctionCommands[HASH_SIZE];
@@ -14,12 +13,12 @@ HashMap<String*, Command*> hashMap = HashMap<String*, Command*>(FunctionCommands
 class Command
 {
   public:
-    Command(FunctionPointer* com, String typeString)
+    Command(void* com, String typeString)
     {
       pointer = com;
       types = typeString;
     }
-    FunctionPointer* pointer;
+    void* pointer;
     String types;
 };
 
@@ -71,7 +70,7 @@ class NetworkDevice
     }
 
     //INT=0,FLOAT=1,BOOL=2,STRING=3
-    void RegisterCommand(String name, FunctionPointer* command, String types)
+    void RegisterCommand(String name, void* command, String types)
     {
       Command* com = new Command(command, types);
       String *h = new String(name);
@@ -118,9 +117,9 @@ class NetworkDevice
             if ((*hashMap[i].getHash()) == "TestCommand")
             {
               Serial.println("GOT IT");
-              FunctionPointer* f = hashMap[i].getValue()->pointer;
-              (*f)();
-              Serial.println();
+              void (*f)() = hashMap[i].getValue()->pointer;
+              f();
+              Serial.println("HOOO");
               return;
             }
             Serial.println("\nNot");
@@ -153,7 +152,7 @@ void setup() {
   void (*test)();
   test = &TestCommand;
   test();
-  device.RegisterCommand(a, (FunctionPointer*)&TestCommand, b);
+  device.RegisterCommand(a, &TestCommand, b);
   bool done = device.Init("AABBCCDD11223344", "Testing", "A Testing Arduino");
   while (!done)
   {
